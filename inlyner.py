@@ -5,6 +5,9 @@
 # This package is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for details.
 # You should have received a copy of the GNU Affero General Public License along with this plug-in. If not, see <https://gnu.org/licenses/>.
 
+import ast  # To analyse source code for function calls.
+import inspect  # To get the source code of functions.
+
 def inlyner(func):
 	"""
 	Inlines function calls inside this function in an attempt to improve
@@ -12,7 +15,17 @@ def inlyner(func):
 	:param func: The function to inline.
 	:return: A transformed function with some subcalls inside it inlined.
 	"""
-	#TODO: Inline subcalls inside this function.
+	try:
+		source = inspect.getsource(func)
+		filename = inspect.getfile(func)
+	except OSError:  # Not really a function or it's a built-in.
+		return func
+
+	tree_root = ast.parse(source, filename=filename)
+	for node in ast.walk(tree_root):
+		if isinstance(node, ast.Call):
+			print("Found function call:", node)
+
 	return func
 
 class Inlyner(type):
